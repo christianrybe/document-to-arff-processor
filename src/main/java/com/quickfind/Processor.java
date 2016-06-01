@@ -11,12 +11,15 @@ public class Processor {
 
     @Contract(pure = true)
     public static double calculateTf(String term, List<String> docTerms) {
-        int count = 0;
+        double count = 0;
         for (String docTerm : docTerms) {
             if (term.equals(docTerm)) {
                 count++;
             }
         }
-        return 0; //count / docTerms.size();
+        if (docTerms.size() != 0) {
+            return count / docTerms.size();
+        } else
+            return 0;
     }
 }
