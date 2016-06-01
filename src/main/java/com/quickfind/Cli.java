@@ -2,8 +2,7 @@ package com.quickfind;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import weka.core.Instances;
 import weka.core.stemmers.SnowballStemmer;
 
@@ -14,7 +13,7 @@ import java.util.*;
  * Created by krystian on 5/31/16.
  */
 public class Cli {
-    private static final Logger log = LoggerFactory.getLogger(Cli.class);
+    private static final Logger log = Logger.getLogger(Cli.class);
     private Options options = new Options();
 
     private String[] args = null;
@@ -72,7 +71,7 @@ public class Cli {
 
             int i = 0;
             while ((line = br.readLine()) != null) {
-                log.info("Reading document from file... " + ++i);
+                log.debug("Reading document from file... " + ++i);
 
                 List<String> terms = new ArrayList<>();
                 String[] columns = line.split(",", 2);
@@ -95,11 +94,7 @@ public class Cli {
                 domainsDocs.put(columns[0], terms);
 //                wordFreqs.forEach( (k,v) -> v = Processor.calculateTf(v, terms.size()));
             }
-            List<String> test = new ArrayList<>();
-            otherTerms.forEach((k,v) -> {if(v > 1) {
-                test.add(k);
-            }});
-            System.out.println(test);
+
         } catch (IOException e) {
             log.error("There was a problem interacting with the file.", e);
         } finally {
@@ -114,20 +109,6 @@ public class Cli {
         }
     }
 
-
-    private void help() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("data-processor", options);
-        System.exit(0);
-
-    }
-
-    public void run() {
-        parseOptions();
-        readTaxonomy();
-        readDocuments();
-        writeArff(ArffFormatter.format(allTerms, domainsDocs));
-    }
 
     private void readTaxonomy() {
         try {
@@ -157,6 +138,20 @@ public class Cli {
             }
         }
     }
+
+    private void help() {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("data-processor", options);
+        System.exit(0);
+
+    }
+
+    public void run() {
+        parseOptions();
+        readTaxonomy();
+        readDocuments();
+        writeArff(ArffFormatter.format(allTerms, domainsDocs));
+    }
 }
 
 //    private void processTerms() {
@@ -175,3 +170,9 @@ public class Cli {
 //            Processor.calculateTf(terms.size());
 //        for(Map<String, Integer> wordFreqs)
 //    }
+
+//    List<String> test = new ArrayList<>();
+//otherTerms.forEach((k,v) -> {if(v > 1) {
+//        test.add(k);
+//        }});
+//        System.out.println(test);

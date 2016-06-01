@@ -1,5 +1,6 @@
 package com.quickfind;
 
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import weka.core.Attribute;
 import weka.core.Instances;
@@ -14,6 +15,7 @@ import java.util.Set;
  * Created by krystian on 5/31/16.
  */
 public class ArffFormatter {
+    private static final Logger log = Logger.getLogger(ArffFormatter.class);
 
     @Contract(pure = true)
     public static Instances format(Set<String> taxonomy, Map<String, List<String>> domainsDocs) {
@@ -28,6 +30,7 @@ public class ArffFormatter {
         double[] vals;
 
         for(Map.Entry<String, List<String>> entry : domainsDocs.entrySet()) {
+            log.info("reading");
             vals = new double[data.numAttributes()];
             vals[0] = data.attribute(0).addStringValue(entry.getKey());
             int i = 1;
