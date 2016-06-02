@@ -30,7 +30,7 @@ public class ArffFormatter {
         double[] vals;
 
         for(Map.Entry<String, List<String>> entry : domainsDocs.entrySet()) {
-            log.info("reading");
+            log.debug("Reading entry: " + entry.getKey());
             vals = new double[data.numAttributes()];
             vals[0] = data.attribute(0).addStringValue(entry.getKey());
             int i = 1;
@@ -42,6 +42,7 @@ public class ArffFormatter {
 
             };*/
             data.add(new SparseInstance(1.0, vals));
+            System.out.println(data);
         }
         return data;
     }

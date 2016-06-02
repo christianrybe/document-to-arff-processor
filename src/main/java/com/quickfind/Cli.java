@@ -75,12 +75,13 @@ public class Cli {
 
                 List<String> terms = new ArrayList<>();
                 String[] columns = line.split(",", 2);
-                String[] tokens = columns[1].replaceAll("[^a-zA-Z\\s]", "").split("\\s");
+                String[] tokens = columns[1].split("[\\.,\\s!;?:`‘\"]+");
+                //                replaceAll("[|\\()\\d\\[\\]-–]", "")
 //                Map<String, Double> wordFreqs = new HashMap<>();
-
                 for (String token : tokens) {
-                    if (!token.isEmpty()) {
-                        String term = token.toLowerCase(); //stemmer.stem(token.toLowerCase());
+                    String term = token.toLowerCase().replaceAll("[^a-zA-Z′-]", ""); //stemmer.stem(token.toLowerCase());
+                    if (!term.isEmpty()) {
+                        System.out.println(term);
                         if (!(allTerms.contains(term))) {
                             otherTerms.compute(term, (k,v) -> (v==null) ? 1 : v++ );
                         }
