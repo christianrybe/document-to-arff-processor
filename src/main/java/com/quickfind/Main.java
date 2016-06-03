@@ -1,27 +1,36 @@
 package com.quickfind;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
+import com.quickfind.util.TokenizerTester;
+import org.apache.commons.cli.CommandLine;
+
+import java.io.*;
 
 /**
  * Created by krystian on 5/31/16.
  */
 public class Main {
 
-    public static void main(String[] args) {
-        new Cli(args).run();
-    }
+    public static void main(String[] args) throws IOException {
+        CommandLine cmd = new Cli(args).parseOptions();
 
-    private static void writeArffHeader(BufferedWriter wr) throws IOException {
-        wr.write("@RELATION WebsiteTexts");
-        wr.newLine();
-        wr.newLine();
-        wr.write("@ATTRIBUTE domain string");
-        wr.newLine();
-        wr.write("@ATTRIBUTE text string");
-        wr.newLine();
-        wr.newLine();
-        wr.write("@DATA");
-        wr.newLine();
+        String[] optionChars = {"i", "i1", "i2"};
+
+        for (String optionChar : optionChars) {
+            TokenizerTester.checkPennTreebank(new FileReader(new File(cmd.getOptionValue(optionChar))));
+            TokenizerTester.checkPTB(new FileReader(new File(cmd.getOptionValue(optionChar))));
+            TokenizerTester.checkTokenizer(new FileReader(new File(cmd.getOptionValue(optionChar))));
+            TokenizerTester.checkSplit(new FileReader(new File(cmd.getOptionValue(optionChar))));
+        }
+
+        /*TokenizerTester.checkPennTreebank(new FileReader(new File(cmd.getOptionValue("i"))));
+        TokenizerTester.checkPTB(new FileReader(new File(cmd.getOptionValue("i"))));
+        TokenizerTester.checkTokenizer(new FileReader(new File(cmd.getOptionValue("i"))));
+        TokenizerTester.checkSplit(new FileReader(new File(cmd.getOptionValue("i"))));*/
+
+        //Weka Tokenizers
+        //Java tokenizer
+        //Java tokenizer with Stemmer
+        //Compare with the list of English words
+
     }
 }
