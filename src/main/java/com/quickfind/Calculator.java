@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by krystian on 5/31/16.
  */
-public class Processor {
+public class Calculator {
 
     @Contract(pure = true)
     public static double calculateTf(String term, List<String> docTerms) {
