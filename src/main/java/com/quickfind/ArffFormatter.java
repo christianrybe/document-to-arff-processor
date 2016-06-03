@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Contract;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
+import weka.core.SparseInstance;
 
 import java.util.*;
 
@@ -13,7 +14,7 @@ import java.util.*;
  */
 public class ArffFormatter {
     private static final Logger log = Logger.getLogger(ArffFormatter.class);
-    private static final int MULTIPLIER = 1000; //to increase precision
+    private static final int MULTIPLIER = 100000; //to increase precision of the document matrix entries
 
 
     @Contract(pure = true)
@@ -74,8 +75,7 @@ public class ArffFormatter {
             } else {
                 vals[vals.length-1] = attVals.indexOf("negative");
             }
-            System.out.println(data);
-            data.add(new DenseInstance(1.0, vals));
+            data.add(new SparseInstance(1.0, vals));
         }
         return data;
     }
