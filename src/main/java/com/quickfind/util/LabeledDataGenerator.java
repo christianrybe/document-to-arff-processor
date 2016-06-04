@@ -3,8 +3,10 @@ package com.quickfind.util;
 import com.quickfind.ArffFormatter;
 import com.quickfind.Cli;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +23,8 @@ public class LabeledDataGenerator extends Cli {
         options.addOption("d", "domains", true, "Domains to be labelled positively.");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException {
+        PropertyConfigurator.configure("log4j.properties");
         LabeledDataGenerator generator = new LabeledDataGenerator(args);
         generator.parseOptions();
         generator.readDocuments();

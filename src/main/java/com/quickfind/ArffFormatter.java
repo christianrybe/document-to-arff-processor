@@ -48,9 +48,10 @@ public class ArffFormatter {
     }
 
     public static Instances format(Set<String> taxonomy, Map<String, List<String>> domainsDocs, Set<String> positiveDomains) {
+        long startTime = System.currentTimeMillis();
         ArrayList<Attribute> atts = new ArrayList<>();
 
-        //atts.add(new Attribute("_domainName_", (List) null));
+        atts.add(new Attribute("_domainName_", (List) null));
         for (String s : taxonomy) {
             atts.add(new Attribute(s));
         }
@@ -63,9 +64,10 @@ public class ArffFormatter {
         double[] vals;
 
         for(Map.Entry<String, List<String>> entry : domainsDocs.entrySet()) {
-            log.debug("Reading entry: " + entry.getKey());
+            log.debug(entry.getKey());
             vals = new double[data.numAttributes()];
-            int i = 0;
+            vals[0] = data.attribute(0).addStringValue(entry.getKey());
+            int i = 1;
             for (String s : taxonomy) {
                 vals[i] = Calculator.calculateTf(s, entry.getValue()) * MULTIPLIER;
                 i++;
@@ -77,6 +79,7 @@ public class ArffFormatter {
             }
             data.add(new SparseInstance(1.0, vals));
         }
+        log.debug(("Total processing time: " + (System.currentTimeMillis() - startTime)));
         return data;
     }
 }
