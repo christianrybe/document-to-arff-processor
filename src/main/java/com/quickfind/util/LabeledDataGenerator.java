@@ -5,7 +5,10 @@ import com.quickfind.Cli;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +26,7 @@ public class LabeledDataGenerator extends Cli {
         options.addOption("d", "domains", true, "Domains to be labelled positively.");
     }
 
-    public static void main(String[] args) throws MalformedURLException {
+    public static void main(String[] args) throws MalformedURLException, InterruptedException {
         PropertyConfigurator.configure("log4j.properties");
         LabeledDataGenerator generator = new LabeledDataGenerator(args);
         generator.parseOptions();
@@ -35,21 +38,21 @@ public class LabeledDataGenerator extends Cli {
     private void readPositiveDomains() {
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(new File(this.cmd.getOptionValue("d"))));
+            br = new BufferedReader(new FileReader(this.cmd.getOptionValue("d")));
             String line;
             while((line = br.readLine()) != null) {
                 positiveDomains.add(line);
             }
         } catch (FileNotFoundException e) {
-            log.error("Domains file not found!");
+            LabeledDataGenerator.log.error("Domains file not found!");
         } catch (IOException e) {
-            log.error("Error reading the domains file!");
+            LabeledDataGenerator.log.error("Error reading the domains file!");
         } finally {
             if (br != null) {
                 try {
                     br.close();
                 } catch (IOException e) {
-                    log.error("Could not close the domains file!");
+                    LabeledDataGenerator.log.error("Could not close the domains file!");
                 }
             }
         }

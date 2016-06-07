@@ -16,9 +16,9 @@ public class Cli {
     private static final int LONGEST_WORD = 20; //assume no English word is longer than that
     protected static Set<String> taxonomy;
 
-    protected Map<String, List<String>> domainsDocs = new HashMap<>();
-    protected CommandLine cmd = null;
+    protected Map<String, Collection<String>> domainsDocs = new HashMap<>();
     protected Options options = new Options();
+    protected CommandLine cmd = null;
 
     private String[] args = null;
     private Map<String, Integer> otherTerms = null;
@@ -69,8 +69,8 @@ public class Cli {
     public void readDocuments() {
         BufferedReader br = null;
         try {
-            taxonomy = new HashSet<>();
             String line;
+            taxonomy = new HashSet<>();
             br = new BufferedReader(new FileReader(new File(cmd.getOptionValue("i"))));
             while ((line = br.readLine()) != null) {
                 List<String> terms = new ArrayList<>();
@@ -159,7 +159,6 @@ public class Cli {
         }
     }
 
-
     private void readTaxonomy() {
         try {
             String allTermsFile = FileUtils.readFileToString(new File(cmd.getOptionValue("t")));
@@ -196,34 +195,11 @@ public class Cli {
 
     }
 
-    public void run() {
+    public void run() throws InterruptedException {
         parseOptions();
         //readTaxonomy();
         readDocuments();
         writeArff(ArffFormatter.format(taxonomy, domainsDocs));
     }
 }
-
-//    private void processTerms() {
-//        for(List<String> docTerms : docsTerms) {
-//            for (String term : taxonomy) {
-//                double tf = Calculator.calculateTf(term, docTerms);
-//            }
-//        }
-
-
-//                double idf = Math.log(docsTerms.size() / docCount);
-//            int docCount = 0;
-                /*if (docTerms.contains(term)) {
-                    docCount++;
-                }*/
-//            Calculator.calculateTf(terms.size());
-//        for(Map<String, Integer> wordFreqs)
-//    }
-
-//    List<String> test = new ArrayList<>();
-//otherTerms.forEach((k,v) -> {if(v > 1) {
-//        test.add(k);
-//        }});
-//        System.out.println(test);
 

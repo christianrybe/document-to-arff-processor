@@ -7,7 +7,7 @@ import java.io.IOException;
  */
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         new Cli(args).run();
 
         String[] optionChars = {"i", "i1", "i2"};

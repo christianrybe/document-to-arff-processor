@@ -18,7 +18,7 @@ public class ArffFormatter {
 
 
     @Contract(pure = true)
-    public static Instances format(Set<String> taxonomy, Map<String, List<String>> domainsDocs) {
+    public static Instances format(Set<String> taxonomy, Map<String, Collection<String>> domainsDocs) throws InterruptedException {
         ArrayList<Attribute> atts = new ArrayList<>();
 
         //atts.add(new Attribute("_domainName_", (List) null));
@@ -29,11 +29,7 @@ public class ArffFormatter {
         Instances data = new Instances("WebsiteTexts", atts, 0);
         double[] vals;
 
-/*        domainsDocs.forEach((k,v) -> {
-
-        });*/
-
-        for(Map.Entry<String, List<String>> entry : domainsDocs.entrySet()) {
+        for (Map.Entry<String, Collection<String>> entry : domainsDocs.entrySet()) {
             log.debug("Reading entry: " + entry.getKey());
             vals = new double[data.numAttributes()];
             //vals[0] = data.attribute(0).addStringValue(entry.getKey());
@@ -47,7 +43,7 @@ public class ArffFormatter {
         return data;
     }
 
-    public static Instances format(Set<String> taxonomy, Map<String, List<String>> domainsDocs, Set<String> positiveDomains) {
+    public static Instances format(Set<String> taxonomy, Map<String, Collection<String>> domainsDocs, Set<String> positiveDomains) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         ArrayList<Attribute> atts = new ArrayList<>();
 
@@ -63,19 +59,36 @@ public class ArffFormatter {
         Instances data = new Instances("WebsiteTexts", atts, 0);
         double[] vals;
 
-        for(Map.Entry<String, List<String>> entry : domainsDocs.entrySet()) {
+//        Map<String, Double> idfMap = Calculator.calculateIdf(taxonomy, domainsDocs.values());
+
+        for (Map.Entry<String, Collection<String>> entry : domainsDocs.entrySet()) {
             log.debug(entry.getKey());
             vals = new double[data.numAttributes()];
             vals[0] = data.attribute(0).addStringValue(entry.getKey());
+
+            /*AtomicInteger i = new AtomicInteger(1);
+            ExecutorService exec = Executors.newCachedThreadPool();
+            for (String s : taxonomy) {
+                Future<Double> future = exec.submit(() -> Calculator.calculateTf(s, entry.getValue()) *//** idfMap.get(s)*//* * MULTIPLIER);
+                try {
+                    vals[i.getAndIncrement()] = future.get();
+                } catch (ExecutionException e) {
+                    log.error("Could not get value of future.", e);
+                }
+
+            }
+            exec.shutdown();
+            exec.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+*/
             int i = 1;
             for (String s : taxonomy) {
-                vals[i] = Calculator.calculateTf(s, entry.getValue()) * MULTIPLIER;
+                vals[i] = Calculator.calculateTf(s, entry.getValue()) * /* idfMap.get(s)*/ MULTIPLIER;
                 i++;
             }
-            if(positiveDomains.contains(entry.getKey())) {
-                vals[vals.length-1] = attVals.indexOf("positive");
+            if (positiveDomains.contains(entry.getKey())) {
+                vals[vals.length - 1] = attVals.indexOf("positive");
             } else {
-                vals[vals.length-1] = attVals.indexOf("negative");
+                vals[vals.length - 1] = attVals.indexOf("negative");
             }
             data.add(new SparseInstance(1.0, vals));
         }
