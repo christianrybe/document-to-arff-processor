@@ -28,7 +28,7 @@ public class Calculator {
     }
 
     @Contract(pure=true)
-    public static Map<String, Double> calculateIdf(Collection<String> terms, Collection<Collection<String>> documents) {
+    public static Map<String, Double> calculateIdf(Collection<String> terms, Collection<Map> maps) {
         Map<String, Double> idfMap = new HashMap<>();
         int i = 0;
 
@@ -40,12 +40,17 @@ public class Calculator {
             i++;
 
             double count = 0.001; //to avoid division by 0
-            for (Collection<String> document : documents) {
-                if (document.contains(term)) {
-                    count++;
+            int documentsNumber = 0;
+            for (Map map : maps) {
+                Collection<Collection<String>> documents = map.values();
+                for (Collection<String> document : documents) {
+                    if (document.contains(term)) {
+                        count++;
+                    }
                 }
+                documentsNumber += documents.size();
             }
-            idfMap.put(term, Math.log10(documents.size() / count));
+            idfMap.put(term, Math.log10(documentsNumber / count));
         }
         return idfMap;
     }

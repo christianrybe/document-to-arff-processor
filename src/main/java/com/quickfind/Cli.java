@@ -13,23 +13,18 @@ import java.util.*;
  */
 public class Cli {
     private static final Logger log = Logger.getLogger(Cli.class);
-    private static final int LONGEST_WORD = 20; //assume no English word is longer than that
-    protected static Set<String> taxonomy;
 
-    protected Map<String, Collection<String>> domainsDocs = new HashMap<>();
+    private static final int LONGEST_WORD = 20; //assume no English word is longer than that
+    protected static Set<String> taxonomy = new HashSet<>();
+
     protected Options options = new Options();
     protected CommandLine cmd = null;
 
-    private String[] args = null;
-    private Map<String, Integer> otherTerms = null;
-    private List<List<String>> docsTerms = new ArrayList<>();
-
     public Cli(String[] args) {
-        this.args = args;
         options.addOption("h", "help", false, "Show help.");
         options.addOption("i", "input", true, "File for input to be processed.");
         options.addOption("o", "output", true, "File for output.");
-        options.addOption("t", "taxonomy", true, "File with the list of words for document term matrix.");
+        options.addOption("x", "taxonomy", true, "File with the list of words for document term matrix.");
     }
 
     protected static void addToTaxonomyAndDoc(String s) {
@@ -43,7 +38,7 @@ public class Cli {
         }
     }
 
-    public CommandLine parseOptions() {
+    public CommandLine parseOptions(String[] args) {
         CommandLineParser parser = new BasicParser();
 
         try {
@@ -66,12 +61,12 @@ public class Cli {
         return cmd;
     }
 
-    public void readDocuments() {
+    public Map<String, Collection<String>> readDocuments(String fileName) {
         BufferedReader br = null;
+        Map<String, Collection<String>> domainsDocs = new HashMap<>();
         try {
             String line;
-            taxonomy = new HashSet<>();
-            br = new BufferedReader(new FileReader(new File(cmd.getOptionValue("i"))));
+            br = new BufferedReader(new FileReader(new File(fileName)));
             while ((line = br.readLine()) != null) {
                 List<String> terms = new ArrayList<>();
                 String[] columns = line.split(",", 2);
@@ -87,67 +82,9 @@ public class Cli {
                 }
                 domainsDocs.put(columns[0], terms);
             }
-//            new FileReader(new File(cmd.getOptionValue("i"))));
-//            PTBTokenizer tokenizer1 = PTBTokenizer.newPTBTokenizer(new FileReader(new File(cmd.getOptionValue("i"))));
-            /*while (tokenizer.hasNext()) {
-                String term = tokenizer.next().replaceAll("[^a-zA-Z′-]", "").toLowerCase();
-                if (!term.isEmpty() && term.length() < LONGEST_WORD) {
-                    if (!taxonomy.contains(term)) {
-                        taxonomy.add(term);
-                    }
-                }
-            }*/
-/*            while (tokenizer1.hasNext()) {
-                String term1 = ((Word) tokenizer1.next()).word().toLowerCase();
-                if (!term1.isEmpty() && term1.length() < LONGEST_WORD) {
-                    String term2 = term1.replaceAll("[^a-zA-Z′-]", "");
-                    if (!taxonomy.contains(term2)) {
-                        allTerms1.add(term2);
-                    }
-                }
-            }*/
-            int count = 9;
-
-//            log.info("Opening file for reading.");
-//            br = new BufferedReader(new FileReader(new File(cmd.getOptionValue("i"))));
-//            String line;
-//            otherTerms = new HashMap<>();
-//            int i = 0;
-//            while ((line = br.readLine()) != null) {
-//                log.debug("Reading document from file... " + i++);
-//
-//                List<String> terms = new ArrayList<>();
-//                String[] columns = line.split(",", 2);
-//                String[] tokens = columns[1].split("[\\.,\\s!;?:`‘\"]+");
-//
-////                Map<String, Double> wordFreqs = new HashMap<>();
-//                for (String token : tokens) {
-//                    String term = token.toLowerCase().replaceAll("[^a-zA-Z′-]", ""); //stemmer.stem(token.toLowerCase());
-//                    if (!term.isEmpty() && term.length() < LONGEST_WORD) {
-//                        if (!(taxonomy.contains(term))) {
-//                            taxonomy.add(term);
-//                            otherTerms.compute(term, (k,v) -> (v==null) ? 1 : v++ );
-//                        }
-////                        wordFreqs.compute(term, (k, v) -> (v==null) ? 1 : v++ );
-//                        terms.add(term);
-//                    }
-//                }
-////                docWordFreqs.add(wordFreqs);
-//                docsTerms.add(terms);
-//                domainsDocs.put(columns[0], terms);
-////                wordFreqs.forEach( (k,v) -> v = Calculator.calculateTf(v, terms.size()));
-//            }
         } catch (IOException e) {
             log.error("There was a problem interacting with the file.", e);
         } finally {
-/*            Set relevantTerms = new HashSet<>();
-            for (Map.Entry<String, Integer> entry : otherTerms.entrySet()) {
-                if (entry.getValue() > 1) {
-                    if (!relevantTerms.contains(entry.getKey())) {
-                        relevantTerms.add(entry.getKey());
-                    }
-                }
-            }*/
             if (br != null) {
                 try {
                     br.close();
@@ -157,11 +94,12 @@ public class Cli {
             }
 
         }
+        return domainsDocs;
     }
 
     private void readTaxonomy() {
         try {
-            String allTermsFile = FileUtils.readFileToString(new File(cmd.getOptionValue("t")));
+            String allTermsFile = FileUtils.readFileToString(new File(cmd.getOptionValue("x")));
             String[] terms = allTermsFile.split("\\r?\\n");
             taxonomy = new HashSet<>(Arrays.asList(terms));
         } catch (IOException e) {
@@ -169,10 +107,10 @@ public class Cli {
         }
     }
 
-    public void writeArff(Instances data) {
+    public void writeArff(Instances data, String fileName) {
         BufferedWriter wr = null;
         try {
-            wr = new BufferedWriter(new FileWriter(new File(cmd.getOptionValue("o"))));
+            wr = new BufferedWriter(new FileWriter(new File(fileName)));
             wr.write(data.toString());
             wr.newLine();
         } catch (IOException e) {
@@ -193,13 +131,6 @@ public class Cli {
         formatter.printHelp("data-processor", options);
         System.exit(0);
 
-    }
-
-    public void run() throws InterruptedException {
-        parseOptions();
-        //readTaxonomy();
-        readDocuments();
-        writeArff(ArffFormatter.format(taxonomy, domainsDocs));
     }
 }
 

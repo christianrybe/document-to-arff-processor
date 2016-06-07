@@ -1,6 +1,7 @@
 package com.quickfind.util;
 
 import com.quickfind.ArffFormatter;
+import com.quickfind.Calculator;
 import com.quickfind.Cli;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -10,8 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by krystian on 6/3/16.
@@ -19,26 +19,36 @@ import java.util.Set;
 public class LabeledDataGenerator extends Cli {
     private static final Logger log = Logger.getLogger(LabeledDataGenerator.class);
 
-    private Set<String> positiveDomains = new HashSet<>();
-
     public LabeledDataGenerator(String[] args) {
         super(args);
         options.addOption("d", "domains", true, "Domains to be labelled positively.");
+        options.addOption("l", "learning", true, "Additional file for learning.");
+        options.addOption("t", "testing", true, "Additional file for testing.");
     }
 
     public static void main(String[] args) throws MalformedURLException, InterruptedException {
         PropertyConfigurator.configure("log4j.properties");
         LabeledDataGenerator generator = new LabeledDataGenerator(args);
-        generator.parseOptions();
-        generator.readDocuments();
-        generator.readPositiveDomains();
-        generator.writeArff(ArffFormatter.format(taxonomy, generator.domainsDocs, generator.positiveDomains));
+        generator.parseOptions(args);
+
+        List<Map> maps = new LinkedList<>();
+        maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));
+        maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
+        maps.add(generator.readDocuments(generator.cmd.getOptionValue("t")));
+
+        Map<String, Double> idfMap = Calculator.calculateIdf(taxonomy, maps);
+        Set<String> positiveDomains = readPositiveDomains(generator.cmd.getOptionValue("d"));
+
+        generator.writeArff(ArffFormatter.format(taxonomy, idfMap, maps.get(0), positiveDomains), "training.arff");
+        generator.writeArff(ArffFormatter.format(taxonomy, idfMap, maps.get(1), positiveDomains), "learning.arff");
+        generator.writeArff(ArffFormatter.format(taxonomy, idfMap, maps.get(2), positiveDomains), "testing.arff");
     }
 
-    private void readPositiveDomains() {
+    private static Set<String> readPositiveDomains(String domainsFileName) {
         BufferedReader br = null;
+        Set<String> positiveDomains = new HashSet<>();
         try {
-            br = new BufferedReader(new FileReader(this.cmd.getOptionValue("d")));
+            br = new BufferedReader(new FileReader(domainsFileName));
             String line;
             while((line = br.readLine()) != null) {
                 positiveDomains.add(line);
@@ -56,5 +66,6 @@ public class LabeledDataGenerator extends Cli {
                 }
             }
         }
+        return positiveDomains;
     }
 }

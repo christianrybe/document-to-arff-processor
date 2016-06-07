@@ -43,7 +43,7 @@ public class ArffFormatter {
         return data;
     }
 
-    public static Instances format(Set<String> taxonomy, Map<String, Collection<String>> domainsDocs, Set<String> positiveDomains) throws InterruptedException {
+    public static Instances format(Set<String> taxonomy, Map<String, Double> idfMap, Map<String, Collection<String>> domainsDocs, Set<String> positiveDomains) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         ArrayList<Attribute> atts = new ArrayList<>();
 
@@ -82,7 +82,7 @@ public class ArffFormatter {
 */
             int i = 1;
             for (String s : taxonomy) {
-                vals[i] = Calculator.calculateTf(s, entry.getValue()) * /* idfMap.get(s)*/ MULTIPLIER;
+                vals[i] = Calculator.calculateTf(s, entry.getValue()) * idfMap.get(s) * MULTIPLIER;
                 i++;
             }
             if (positiveDomains.contains(entry.getKey())) {
