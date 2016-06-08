@@ -60,7 +60,6 @@ public class LabeledDataGenerator extends Cli {
         PropertyConfigurator.configure("log4j.properties");
         LabeledDataGenerator generator = new LabeledDataGenerator();
         generator.parseOptions(args);
-        log.info("Starting processing with options: " + getOptionsList(generator.cmd));
 
         List<Map> maps = new LinkedList<>();
 //        maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));

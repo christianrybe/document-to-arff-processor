@@ -48,7 +48,7 @@ public class Cli {
         HelpFormatter formatter = new HelpFormatter();
         try {
             cmd = parser.parse(options, args);
-
+            log.info("Starting processing with options: " + getOptionsList(cmd));
         } catch (ParseException e) {
             log.error("Failed to parseOptions command line arguments", e);
             formatter.printHelp("data-parser", options);

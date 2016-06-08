@@ -14,6 +14,7 @@ import weka.core.tokenizers.WordTokenizer;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -32,6 +33,7 @@ public class TokenizerTester extends Cli {
     public static int checkPennTreebank(Reader r) {
         log.info("Executing PennTreebank");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         PennTreebankTokenizer tokenizer = new PennTreebankTokenizer(r);
         while (tokenizer.hasNext()) {
             TokenizerTester.addToTaxonomyMap(null, tokenizer.next());
@@ -44,6 +46,7 @@ public class TokenizerTester extends Cli {
     public static int checkStanfordTokenizer(Reader r) {
         log.info("Executing Tokenizer");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
         while (tokenizer.hasNext()) {
             List<Word> words = tokenizer.tokenize();
@@ -56,8 +59,9 @@ public class TokenizerTester extends Cli {
     }
 
     public static int checkStanfordTokenizerWithStemmer(Reader r) {
-        log.info("Executing Tokenizer with stemmer");
+        log.info("Executing Tokenizer with the Stanford stemmer");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         SnowballStemmer stemmer = new SnowballStemmer();
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
         while (tokenizer.hasNext()) {
@@ -70,6 +74,7 @@ public class TokenizerTester extends Cli {
     public static int checkSplit(Collection<String> lines) throws IOException {
         log.info("Executing split()");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         for (String line : lines) {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
             for (String token : tokens) {
@@ -83,6 +88,7 @@ public class TokenizerTester extends Cli {
     public static int checkAlphabeticTokenizer(Collection<String> lines) {
         log.info("Executing Alphabetic Tokenizer");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         weka.core.tokenizers.Tokenizer tokenizer = new AlphabeticTokenizer();
         for (String line : lines) {
             tokenizer.tokenize(line);
@@ -97,6 +103,7 @@ public class TokenizerTester extends Cli {
     public static int checkWordTokenizer(Collection<String> lines) {
         log.info("Executing Alphabetic Tokenizer");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         weka.core.tokenizers.Tokenizer tokenizer = new WordTokenizer();
         for (String line : lines) {
             tokenizer.tokenize(line);
@@ -111,6 +118,7 @@ public class TokenizerTester extends Cli {
     public static int checkSplitWithStemmer(Collection<String> lines) throws IOException {
         log.info("Executing split() with Snowball stemmer");
         long startTime = System.currentTimeMillis();
+        taxonomyFreqs = new HashMap<>();
         SnowballStemmer stemmer = new SnowballStemmer();
         for (String line : lines) {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
@@ -148,15 +156,16 @@ public class TokenizerTester extends Cli {
         TokenizerTester tester = new TokenizerTester();
         tester.parseOptions(args);
         String fileName = tester.cmd.getOptionValue("i");
-        log.info("Starting processing with options: " + getOptionsList(tester.cmd));
 
         Collection<String> lines = readFileIntoBuffer(fileName);
-        checkSplitWithStemmer(lines);
+        checkWordTokenizer(lines);
+        checkAlphabeticTokenizer(lines);
+        checkSplit(lines);
 
+        checkPennTreebank(new FileReader(new File(fileName)));
+        checkStanfordTokenizer(new FileReader(new File(fileName)));
 
         checkStanfordTokenizerWithStemmer(new FileReader(new File(fileName)));
-        checkStanfordTokenizer(new FileReader(new File(fileName)));
-        checkPennTreebank(new FileReader(new File(fileName)));
-
+        checkSplitWithStemmer(lines);
     }
 }
