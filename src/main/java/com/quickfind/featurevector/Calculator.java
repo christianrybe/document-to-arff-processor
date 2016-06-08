@@ -1,4 +1,4 @@
-package com.quickfind;
+package com.quickfind.featurevector;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
@@ -29,6 +29,7 @@ public class Calculator {
 
     @Contract(pure=true)
     public static Map<String, Double> calculateIdf(Collection<String> terms, Collection<Map> maps) {
+        log.info("Starting IDF calculation...");
         Map<String, Double> idfMap = new HashMap<>();
         int i = 0;
 

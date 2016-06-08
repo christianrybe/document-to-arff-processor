@@ -3,9 +3,11 @@ package com.quickfind;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import weka.core.Instances;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -15,16 +17,21 @@ public class Cli {
     private static final Logger log = Logger.getLogger(Cli.class);
 
     private static final int LONGEST_WORD = 20; //assume no English word is longer than that
+    private static final int MAX_DOCUMENT_SIZE = 100000; //do not process websites bigger than this
     protected static Set<String> taxonomy = new HashSet<>();
 
     protected Options options = new Options();
     protected CommandLine cmd = null;
 
-    public Cli(String[] args) {
-        options.addOption("h", "help", false, "Show help.");
-        options.addOption("i", "input", true, "File for input to be processed.");
-        options.addOption("o", "output", true, "File for output.");
-        options.addOption("x", "taxonomy", true, "File with the list of words for document term matrix.");
+    public Cli() {
+        options.addOption(Option.builder("h").longOpt("help").desc("Show help.")
+                 .build());
+        options.addOption(Option.builder("i").argName("csv file").longOpt("input").desc("Input file.")
+                .hasArg().required().build());
+        options.addOption(Option.builder("o").argName("arff file").longOpt("output").desc("Output file.")
+                .hasArg().build());
+        options.addOption(Option.builder("x").argName("csv file").longOpt("taxonomy").desc("File with the list of words for document term matrix.")
+                .hasArg().build());
     }
 
     protected static void addToTaxonomyAndDoc(String s) {
@@ -33,35 +40,24 @@ public class Cli {
             if (!taxonomy.contains(term)) {
                 taxonomy.add(term);
             }
-//            int count = termsMap.containsKey(term) ? termsMap.get(term) : 0;
-//            termsMap.put(term, count + 1);
         }
     }
 
-    public CommandLine parseOptions(String[] args) {
-        CommandLineParser parser = new BasicParser();
-
+    public void parseOptions(String[] args) {
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter formatter = new HelpFormatter();
         try {
             cmd = parser.parse(options, args);
 
-            if (cmd.hasOption("h")) {
-                help();
-                System.exit(0);
-            }
-
-            if (!(cmd.hasOption("i") && cmd.hasOption("o"))) {
-                log.error("Output or input file missing.");
-                help();
-                System.exit(0);
-            }
-
         } catch (ParseException e) {
             log.error("Failed to parseOptions command line arguments", e);
+            formatter.printHelp("data-parser", options);
+            System.exit(0);
         }
-        return cmd;
     }
 
     public Map<String, Collection<String>> readDocuments(String fileName) {
+        log.debug("Reading document " + fileName);
         BufferedReader br = null;
         Map<String, Collection<String>> domainsDocs = new HashMap<>();
         try {
@@ -71,16 +67,18 @@ public class Cli {
                 List<String> terms = new ArrayList<>();
                 String[] columns = line.split(",", 2);
                 String[] tokens = columns[1].split("[\\.,\\s!;?:`‘\"]+");
-                for (String token : tokens) {
-                    String term = token.replaceAll("[^a-zA-Z′-]", "").toLowerCase();
-                    if (!term.isEmpty() && term.length() < LONGEST_WORD && !term.equals("-")) {
-                        if (!taxonomy.contains(term)) {
-                            taxonomy.add(term);
+                if (tokens.length < MAX_DOCUMENT_SIZE) {
+                    for (String token : tokens) {
+                        String term = token.replaceAll("[^a-zA-Z′-]", "").toLowerCase();
+                        if (!term.isEmpty() && term.length() < LONGEST_WORD && !term.equals("-")) {
+                            if (!taxonomy.contains(term)) {
+                                taxonomy.add(term);
+                            }
+                            terms.add(term);
                         }
-                        terms.add(term);
                     }
+                    domainsDocs.put(columns[0], terms);
                 }
-                domainsDocs.put(columns[0], terms);
             }
         } catch (IOException e) {
             log.error("There was a problem interacting with the file.", e);
@@ -107,30 +105,5 @@ public class Cli {
         }
     }
 
-    public void writeArff(Instances data, String fileName) {
-        BufferedWriter wr = null;
-        try {
-            wr = new BufferedWriter(new FileWriter(new File(fileName)));
-            wr.write(data.toString());
-            wr.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (wr != null) {
-                try {
-                    wr.close();
-                } catch (IOException e) {
-                    log.error("Could not close the output file!");
-                }
-            }
-        }
-    }
-
-    private void help() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("data-processor", options);
-        System.exit(0);
-
-    }
 }
 

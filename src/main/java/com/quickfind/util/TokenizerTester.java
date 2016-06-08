@@ -27,7 +27,7 @@ public class TokenizerTester extends Cli {
     private static Map<String, Integer> termsMap;
 
     public TokenizerTester(String[] args) {
-        super(args);
+        super();
         options.addOption("i1", "input1", true, "File1 for input to be processed.");
         options.addOption("i2", "input2", true, "File2 for input to be processed.");
     }

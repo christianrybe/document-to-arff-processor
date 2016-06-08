@@ -1,8 +1,9 @@
-package com.quickfind.util;
+package com.quickfind;
 
-import com.quickfind.ArffFormatter;
-import com.quickfind.Calculator;
-import com.quickfind.Cli;
+import com.quickfind.featurevector.Calculator;
+import com.quickfind.featurevector.Generator;
+import com.quickfind.util.Utils;
+import org.apache.commons.cli.Option;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -10,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.*;
 
 /**
@@ -19,29 +19,44 @@ import java.util.*;
 public class LabeledDataGenerator extends Cli {
     private static final Logger log = Logger.getLogger(LabeledDataGenerator.class);
 
-    public LabeledDataGenerator(String[] args) {
-        super(args);
-        options.addOption("d", "domains", true, "Domains to be labelled positively.");
-        options.addOption("l", "learning", true, "Additional file for learning.");
-        options.addOption("t", "testing", true, "Additional file for testing.");
+    public LabeledDataGenerator() {
+        super();
+        options.addOption(Option.builder("d").argName("text file").longOpt("domains").hasArg().required()
+                .desc("Domains to be labelled positively, newline separated.").build());
+        options.addOption(Option.builder("l").argName("csv file").longOpt("learning").hasArg().required()
+                .desc("Additional file for learning.").build());
+        options.addOption(Option.builder("t").argName("csv file").longOpt("testing").hasArg().required()
+                .desc("Additional file for testing.").build());
+        options.addOption(Option.builder("n").longOpt("noidf")
+                .desc("Do not compute IDF.").build());
     }
 
-    public static void main(String[] args) throws MalformedURLException, InterruptedException {
+    public static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
-        LabeledDataGenerator generator = new LabeledDataGenerator(args);
+        LabeledDataGenerator generator = new LabeledDataGenerator();
         generator.parseOptions(args);
 
+        log.info("Starting processing...");
         List<Map> maps = new LinkedList<>();
         maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));
         maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
         maps.add(generator.readDocuments(generator.cmd.getOptionValue("t")));
 
-        Map<String, Double> idfMap = Calculator.calculateIdf(taxonomy, maps);
+        Map<String, Double> idfMap = null;
+        if (!generator.cmd.hasOption("n")) {
+            idfMap = Calculator.calculateIdf(taxonomy, maps);
+        }
+
         Set<String> positiveDomains = readPositiveDomains(generator.cmd.getOptionValue("d"));
 
-        generator.writeArff(ArffFormatter.format(taxonomy, idfMap, maps.get(0), positiveDomains), "training.arff");
-        generator.writeArff(ArffFormatter.format(taxonomy, idfMap, maps.get(1), positiveDomains), "learning.arff");
-        generator.writeArff(ArffFormatter.format(taxonomy, idfMap, maps.get(2), positiveDomains), "testing.arff");
+        try {
+            log.info("Starting tf-idf calculation...");
+            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains), "training.arff");
+            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains), "learning.arff");
+            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains), "testing.arff");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static Set<String> readPositiveDomains(String domainsFileName) {
