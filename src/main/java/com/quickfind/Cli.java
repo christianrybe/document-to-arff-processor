@@ -97,7 +97,7 @@ public class Cli {
     }
 
     protected static Collection<String> addToTaxonomyMap(Collection<String> terms, String token) {
-        String term = /*stemmer.stem(*/token.replace("^-|(?<=\\s)-\\w+", "").replaceAll("[^a-zA-Z′-]", "").toLowerCase();
+        String term = stemmer.stem(token.replace("^-|(?<=\\s)-\\w+", "").replaceAll("[^a-zA-Z′-]", "").toLowerCase());
         if (!term.isEmpty() && term.length() < LONGEST_WORD && term.length() > 1) {
             int count = taxonomyFreqs.containsKey(term) ? taxonomyFreqs.get(term) : 0;
             taxonomyFreqs.put(term, count + 1);

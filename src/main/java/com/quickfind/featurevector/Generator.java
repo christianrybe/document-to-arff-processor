@@ -43,7 +43,8 @@ public class Generator {
         return data;
     }
 
-    public static Instances computeTfIdf(Collection<String> taxonomy, Map<String, Double> idfMap, Map<String, Collection<String>> domainsDocs, Set<String> positiveDomains) throws InterruptedException {
+    public static Instances computeTfIdf(Collection<String> taxonomy, Map<String, Double> idfMap,
+                                         Map<String, Collection<String>> domainsDocs, Set<String> positiveDomains) {
         long startTime = System.currentTimeMillis();
         ArrayList<Attribute> atts = new ArrayList<>();
 

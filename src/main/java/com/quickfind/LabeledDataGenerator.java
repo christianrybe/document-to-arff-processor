@@ -37,7 +37,7 @@ public class LabeledDataGenerator extends Cli {
         try {
             br = new BufferedReader(new FileReader(domainsFileName));
             String line;
-            while((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 positiveDomains.add(line);
             }
         } catch (FileNotFoundException e) {
@@ -75,14 +75,10 @@ public class LabeledDataGenerator extends Cli {
 
         Set<String> positiveDomains = readPositiveDomains(generator.cmd.getOptionValue("d"));
 
-        try {
-            log.info("Starting tf-idf calculation...");
-            Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains).toString(), "training.arff");
-            Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains).toString(), "learning.arff");
-            Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains).toString(), "testing.arff");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        log.info("Starting tf-idf calculation...");
+        Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains).toString(), "training.arff");
+        Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains).toString(), "learning.arff");
+        Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains).toString(), "testing.arff");
     }
 
 }
