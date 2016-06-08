@@ -13,10 +13,7 @@ import weka.core.tokenizers.WordTokenizer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by krystian on 6/2/16.
@@ -24,9 +21,8 @@ import java.util.Map;
 public class TokenizerTester extends Cli {
     private static final Logger log = Logger.getLogger(TokenizerTester.class);
 
-    private static Map<String, Integer> termsMap;
 
-    public TokenizerTester(String[] args) {
+    public TokenizerTester() {
         super();
         options.addOption("i1", "input1", true, "File1 for input to be processed.");
         options.addOption("i2", "input2", true, "File2 for input to be processed.");
@@ -34,82 +30,83 @@ public class TokenizerTester extends Cli {
 
     public static int checkPennTreebank(Reader r) {
         log.info("Executing PennTreebank");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         PennTreebankTokenizer tokenizer = new PennTreebankTokenizer(r);
         while (tokenizer.hasNext()) {
-            addToTaxonomyAndDoc(tokenizer.next());
+            TokenizerTester.addToTaxonomyMap(null, tokenizer.next());
         }
+
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     public static int checkTokenizer(Reader r) {
         log.info("Executing Tokenizer");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
         while (tokenizer.hasNext()) {
             List<Word> words = tokenizer.tokenize();
             for (Word word : words) {
-                addToTaxonomyAndDoc(word.word());
+                TokenizerTester.addToTaxonomyMap(null, word.word());
             }
         }
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     public static int checkSplit(Reader r) throws IOException {
         log.info("Executing split()");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         String line;
         BufferedReader br = new BufferedReader(r);
         while ((line = br.readLine()) != null) {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
 
             for (String token : tokens) {
-                addToTaxonomyAndDoc(token);
+                TokenizerTester.addToTaxonomyMap(null, token);
             }
         }
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     public static int checkAlphabeticTokenizer() {
         log.info("Executing Alphabetic Tokenizer");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         weka.core.tokenizers.Tokenizer tokenizer = new AlphabeticTokenizer();
         while (tokenizer.hasMoreElements()) {
-            addToTaxonomyAndDoc(tokenizer.nextElement());
+            TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
         }
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     public static int checkWordTokenizer() {
         log.info("Executing Alphabetic Tokenizer");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         weka.core.tokenizers.Tokenizer tokenizer = new WordTokenizer();
         while (tokenizer.hasMoreElements()) {
-            addToTaxonomyAndDoc(tokenizer.nextElement());
+            TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
         }
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     public static int checkTokenizerWithStemmer(Reader r) {
         log.info("Executing Tokenizer with stemmer");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         SnowballStemmer stemmer = new SnowballStemmer();
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
         while (tokenizer.hasNext()) {
-            addToTaxonomyAndDoc(stemmer.stem(tokenizer.next().word()));
+            TokenizerTester.addToTaxonomyMap(null, stemmer.stem(tokenizer.next().word()));
         }
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     public static int checkSplitWithStemmer(Reader r) throws IOException {
         log.info("Executing split() with Snowball stemmer");
-        long startTime = initialiseCheckerAtCurTime();
+        long startTime = System.currentTimeMillis();
         SnowballStemmer stemmer = new SnowballStemmer();
         String line;
         BufferedReader br = new BufferedReader(r);
@@ -117,26 +114,16 @@ public class TokenizerTester extends Cli {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
 
             for (String token : tokens) {
-                addToTaxonomyAndDoc(stemmer.stem(token));
+                TokenizerTester.addToTaxonomyMap(null, stemmer.stem(token));
             }
         }
         logStats(startTime);
-        return taxonomy.size();
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
     private static void logStats(long startTime) {
         log.info("Processing time: " + (System.currentTimeMillis() - startTime));
-        log.info("Unique terms: " + taxonomy.size());
-//        termsMap.entrySet().stream()
-//                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).limit(100).forEach(System.out::println);
-//        log.info(sorted);
-    }
-
-    private static long initialiseCheckerAtCurTime() {
-        long startTime = System.currentTimeMillis();
-        taxonomy = new HashSet<>();
-        termsMap = new HashMap<>();
-        return startTime;
+        log.info("Unique terms: " + Utils.getPrunedTaxonomy(taxonomyFreqs).size());
     }
 
 }

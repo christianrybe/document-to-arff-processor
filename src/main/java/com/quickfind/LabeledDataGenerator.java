@@ -42,6 +42,8 @@ public class LabeledDataGenerator extends Cli {
         maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
         maps.add(generator.readDocuments(generator.cmd.getOptionValue("t")));
 
+        Collection<String> taxonomy = Utils.getPrunedTaxonomy(taxonomyFreqs);
+
         Map<String, Double> idfMap = null;
         if (!generator.cmd.hasOption("n")) {
             idfMap = Calculator.calculateIdf(taxonomy, maps);
@@ -83,4 +85,5 @@ public class LabeledDataGenerator extends Cli {
         }
         return positiveDomains;
     }
+
 }

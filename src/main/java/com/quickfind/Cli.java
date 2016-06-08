@@ -16,31 +16,22 @@ import java.util.*;
 public class Cli {
     private static final Logger log = Logger.getLogger(Cli.class);
 
-    private static final int LONGEST_WORD = 20; //assume no English word is longer than that
     private static final int MAX_DOCUMENT_SIZE = 100000; //do not process websites bigger than this
-    protected static Set<String> taxonomy = new HashSet<>();
+    public static Map<String, Integer> taxonomyFreqs = new HashMap<>();
+    public static final int LONGEST_WORD = 20; //assume no English word is longer than that
 
     protected Options options = new Options();
     protected CommandLine cmd = null;
 
     public Cli() {
         options.addOption(Option.builder("h").longOpt("help").desc("Show help.")
-                 .build());
+                .build());
         options.addOption(Option.builder("i").argName("csv file").longOpt("input").desc("Input file.")
                 .hasArg().required().build());
         options.addOption(Option.builder("o").argName("arff file").longOpt("output").desc("Output file.")
                 .hasArg().build());
         options.addOption(Option.builder("x").argName("csv file").longOpt("taxonomy").desc("File with the list of words for document term matrix.")
                 .hasArg().build());
-    }
-
-    protected static void addToTaxonomyAndDoc(String s) {
-        String term = s.replaceAll("[^a-zA-Z′-]", "").toLowerCase();
-        if (!term.isEmpty() && term.length() < LONGEST_WORD && !term.equals("-")) {
-            if (!taxonomy.contains(term)) {
-                taxonomy.add(term);
-            }
-        }
     }
 
     public void parseOptions(String[] args) {
@@ -64,18 +55,12 @@ public class Cli {
             String line;
             br = new BufferedReader(new FileReader(new File(fileName)));
             while ((line = br.readLine()) != null) {
-                List<String> terms = new ArrayList<>();
+                Collection<String> terms = new ArrayList<>();
                 String[] columns = line.split(",", 2);
                 String[] tokens = columns[1].split("[\\.,\\s!;?:`‘\"]+");
                 if (tokens.length < MAX_DOCUMENT_SIZE) {
                     for (String token : tokens) {
-                        String term = token.replaceAll("[^a-zA-Z′-]", "").toLowerCase();
-                        if (!term.isEmpty() && term.length() < LONGEST_WORD && !term.equals("-")) {
-                            if (!taxonomy.contains(term)) {
-                                taxonomy.add(term);
-                            }
-                            terms.add(term);
-                        }
+                        addToTaxonomyMap(terms, token);
                     }
                     domainsDocs.put(columns[0], terms);
                 }
@@ -95,7 +80,20 @@ public class Cli {
         return domainsDocs;
     }
 
-    private void readTaxonomy() {
+    protected static Collection<String> addToTaxonomyMap(Collection<String> terms, String token) {
+        String term = token.replaceAll("[^a-zA-Z′-]", "").toLowerCase();
+        if (!term.isEmpty() && term.length() < LONGEST_WORD && !term.equals("-")) {
+            int count = taxonomyFreqs.containsKey(term) ? taxonomyFreqs.get(term) : 0;
+            taxonomyFreqs.put(term, count + 1);
+            if (terms != null) {
+                terms.add(term);
+            }
+        }
+        return terms;
+    }
+
+    private Collection<String> readTaxonomy() {
+        Collection<String> taxonomy = null;
         try {
             String allTermsFile = FileUtils.readFileToString(new File(cmd.getOptionValue("x")));
             String[] terms = allTermsFile.split("\\r?\\n");
@@ -103,6 +101,7 @@ public class Cli {
         } catch (IOException e) {
             log.error("Error processing taxonomy!");
         }
+        return taxonomy;
     }
 
 }
