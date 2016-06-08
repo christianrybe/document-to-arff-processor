@@ -5,6 +5,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import weka.core.stemmers.SnowballStemmer;
+import weka.core.tokenizers.Tokenizer;
+import weka.core.tokenizers.WordTokenizer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,18 +66,20 @@ public class Cli {
         BufferedReader br = null;
         Map<String, Collection<String>> domainsDocs = new HashMap<>();
         try {
+            Tokenizer tokenizer = new WordTokenizer();
             String line;
             br = new BufferedReader(new FileReader(new File(fileName)));
             while ((line = br.readLine()) != null) {
                 Collection<String> terms = new ArrayList<>();
+
+                int tokenCount = 0;
                 String[] columns = line.split(",", 2);
-                String[] tokens = columns[1].split("[\\.,\\s!;?:`‘\"]+");
-                if (tokens.length < MAX_DOCUMENT_SIZE) {
-                    for (String token : tokens) {
-                        addToTaxonomyMap(terms, token);
-                    }
-                    domainsDocs.put(columns[0], terms);
+                tokenizer.tokenize(columns[1]);
+                while (tokenizer.hasMoreElements() && tokenCount < MAX_DOCUMENT_SIZE) {
+                    terms = addToTaxonomyMap(terms, tokenizer.nextElement());
+                    tokenCount++;
                 }
+                domainsDocs.put(columns[0], terms);
             }
         } catch (IOException e) {
             log.error("There was a problem interacting with the file.", e);
@@ -93,11 +97,8 @@ public class Cli {
     }
 
     protected static Collection<String> addToTaxonomyMap(Collection<String> terms, String token) {
-        String term = stemmer.stem(token.replaceAll("[^a-zA-Z′-]", "").toLowerCase());
+        String term = /*stemmer.stem(*/token.replace("^-|(?<=\\s)-\\w+", "").replaceAll("[^a-zA-Z′-]", "").toLowerCase();
         if (!term.isEmpty() && term.length() < LONGEST_WORD && term.length() > 1) {
-            if (term.startsWith("-")) {
-                term = term.replace("-", "");
-            }
             int count = taxonomyFreqs.containsKey(term) ? taxonomyFreqs.get(term) : 0;
             taxonomyFreqs.put(term, count + 1);
             if (terms != null) {
