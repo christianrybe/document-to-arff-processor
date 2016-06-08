@@ -6,13 +6,14 @@ import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.process.Tokenizer;
 import edu.stanford.nlp.trees.PennTreebankTokenizer;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import weka.core.stemmers.SnowballStemmer;
 import weka.core.tokenizers.AlphabeticTokenizer;
 import weka.core.tokenizers.WordTokenizer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public class TokenizerTester extends Cli {
         return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
-    public static int checkTokenizer(Reader r) {
+    public static int checkStanfordTokenizer(Reader r) {
         log.info("Executing Tokenizer");
         long startTime = System.currentTimeMillis();
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
@@ -54,45 +55,7 @@ public class TokenizerTester extends Cli {
         return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
-    public static int checkSplit(Reader r) throws IOException {
-        log.info("Executing split()");
-        long startTime = System.currentTimeMillis();
-        String line;
-        BufferedReader br = new BufferedReader(r);
-        while ((line = br.readLine()) != null) {
-            String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
-
-            for (String token : tokens) {
-                TokenizerTester.addToTaxonomyMap(null, token);
-            }
-        }
-        logStats(startTime);
-        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
-    }
-
-    public static int checkAlphabeticTokenizer() {
-        log.info("Executing Alphabetic Tokenizer");
-        long startTime = System.currentTimeMillis();
-        weka.core.tokenizers.Tokenizer tokenizer = new AlphabeticTokenizer();
-        while (tokenizer.hasMoreElements()) {
-            TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
-        }
-        logStats(startTime);
-        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
-    }
-
-    public static int checkWordTokenizer() {
-        log.info("Executing Alphabetic Tokenizer");
-        long startTime = System.currentTimeMillis();
-        weka.core.tokenizers.Tokenizer tokenizer = new WordTokenizer();
-        while (tokenizer.hasMoreElements()) {
-            TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
-        }
-        logStats(startTime);
-        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
-    }
-
-    public static int checkTokenizerWithStemmer(Reader r) {
+    public static int checkStanfordTokenizerWithStemmer(Reader r) {
         log.info("Executing Tokenizer with stemmer");
         long startTime = System.currentTimeMillis();
         SnowballStemmer stemmer = new SnowballStemmer();
@@ -104,13 +67,52 @@ public class TokenizerTester extends Cli {
         return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
     }
 
-    public static int checkSplitWithStemmer(Reader r) throws IOException {
+    public static int checkSplit(Collection<String> lines) throws IOException {
+        log.info("Executing split()");
+        long startTime = System.currentTimeMillis();
+        for (String line : lines) {
+            String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
+            for (String token : tokens) {
+                TokenizerTester.addToTaxonomyMap(null, token);
+            }
+        }
+        logStats(startTime);
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
+    }
+
+    public static int checkAlphabeticTokenizer(Collection<String> lines) {
+        log.info("Executing Alphabetic Tokenizer");
+        long startTime = System.currentTimeMillis();
+        weka.core.tokenizers.Tokenizer tokenizer = new AlphabeticTokenizer();
+        for (String line : lines) {
+            tokenizer.tokenize(line);
+            while (tokenizer.hasMoreElements()) {
+                TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
+            }
+        }
+        logStats(startTime);
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
+    }
+
+    public static int checkWordTokenizer(Collection<String> lines) {
+        log.info("Executing Alphabetic Tokenizer");
+        long startTime = System.currentTimeMillis();
+        weka.core.tokenizers.Tokenizer tokenizer = new WordTokenizer();
+        for (String line : lines) {
+            tokenizer.tokenize(line);
+            while (tokenizer.hasMoreElements()) {
+                TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
+            }
+        }
+        logStats(startTime);
+        return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
+    }
+
+    public static int checkSplitWithStemmer(Collection<String> lines) throws IOException {
         log.info("Executing split() with Snowball stemmer");
         long startTime = System.currentTimeMillis();
         SnowballStemmer stemmer = new SnowballStemmer();
-        String line;
-        BufferedReader br = new BufferedReader(r);
-        while ((line = br.readLine()) != null) {
+        for (String line : lines) {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
 
             for (String token : tokens) {
@@ -126,4 +128,35 @@ public class TokenizerTester extends Cli {
         log.info("Unique terms: " + Utils.getPrunedTaxonomy(taxonomyFreqs).size());
     }
 
+    private static Collection<String> readFileIntoBuffer(String fileName) throws IOException {
+        Collection<String> lines = new ArrayList<>();
+        String line;
+        BufferedReader br = new BufferedReader(new FileReader(new File(fileName)));
+        try {
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            log.error("Error reading from file!", e);
+            throw e;
+        }
+        return lines;
+    }
+
+    public static void main(String[] args) throws IOException {
+        PropertyConfigurator.configure("log4j.properties");
+        TokenizerTester tester = new TokenizerTester();
+        tester.parseOptions(args);
+        String fileName = tester.cmd.getOptionValue("i");
+        log.info("Starting processing with options: " + getOptionsList(tester.cmd));
+
+        Collection<String> lines = readFileIntoBuffer(fileName);
+        checkSplitWithStemmer(lines);
+
+
+        checkStanfordTokenizerWithStemmer(new FileReader(new File(fileName)));
+        checkStanfordTokenizer(new FileReader(new File(fileName)));
+        checkPennTreebank(new FileReader(new File(fileName)));
+
+    }
 }

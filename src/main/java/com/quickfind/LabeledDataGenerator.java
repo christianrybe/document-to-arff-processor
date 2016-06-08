@@ -31,36 +31,6 @@ public class LabeledDataGenerator extends Cli {
                 .desc("Do not compute IDF.").build());
     }
 
-    public static void main(String[] args) {
-        PropertyConfigurator.configure("log4j.properties");
-        LabeledDataGenerator generator = new LabeledDataGenerator();
-        generator.parseOptions(args);
-
-        log.info("Starting processing...");
-        List<Map> maps = new LinkedList<>();
-        maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));
-        maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
-        maps.add(generator.readDocuments(generator.cmd.getOptionValue("t")));
-
-        Collection<String> taxonomy = Utils.getPrunedTaxonomy(taxonomyFreqs);
-
-        Map<String, Double> idfMap = null;
-        if (!generator.cmd.hasOption("n")) {
-            idfMap = Calculator.calculateIdf(taxonomy, maps);
-        }
-
-        Set<String> positiveDomains = readPositiveDomains(generator.cmd.getOptionValue("d"));
-
-        try {
-            log.info("Starting tf-idf calculation...");
-            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains), "training.arff");
-            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains), "learning.arff");
-            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains), "testing.arff");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     private static Set<String> readPositiveDomains(String domainsFileName) {
         BufferedReader br = null;
         Set<String> positiveDomains = new HashSet<>();
@@ -84,6 +54,36 @@ public class LabeledDataGenerator extends Cli {
             }
         }
         return positiveDomains;
+    }
+
+    public static void main(String[] args) {
+        PropertyConfigurator.configure("log4j.properties");
+        LabeledDataGenerator generator = new LabeledDataGenerator();
+        generator.parseOptions(args);
+        log.info("Starting processing with options: " + getOptionsList(generator.cmd));
+
+        List<Map> maps = new LinkedList<>();
+//        maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));
+//        maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
+        maps.add(generator.readDocuments(generator.cmd.getOptionValue("t")));
+
+        Collection<String> taxonomy = Utils.getPrunedTaxonomy(taxonomyFreqs);
+
+        Map<String, Double> idfMap = null;
+        if (!generator.cmd.hasOption("n")) {
+            idfMap = Calculator.calculateIdf(taxonomy, maps);
+        }
+
+        Set<String> positiveDomains = readPositiveDomains(generator.cmd.getOptionValue("d"));
+
+        try {
+            log.info("Starting tf-idf calculation...");
+            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains), "training.arff");
+            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains), "learning.arff");
+            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains), "testing.arff");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package com.quickfind;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,6 +33,14 @@ public class Cli {
                 .hasArg().build());
         options.addOption(Option.builder("x").argName("csv file").longOpt("taxonomy").desc("File with the list of words for document term matrix.")
                 .hasArg().build());
+    }
+
+    protected static String getOptionsList(@NotNull CommandLine cmd) {
+        StringBuilder options = new StringBuilder();
+        for (Option option : cmd.getOptions()) {
+            options.append(" -" + option.getOpt() + " " + option.getValue());
+        }
+        return options.toString();
     }
 
     public void parseOptions(String[] args) {
