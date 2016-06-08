@@ -62,8 +62,8 @@ public class LabeledDataGenerator extends Cli {
         generator.parseOptions(args);
 
         List<Map> maps = new LinkedList<>();
-//        maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));
-//        maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
+        maps.add(generator.readDocuments(generator.cmd.getOptionValue("i")));
+        maps.add(generator.readDocuments(generator.cmd.getOptionValue("l")));
         maps.add(generator.readDocuments(generator.cmd.getOptionValue("t")));
 
         Collection<String> taxonomy = Utils.getPrunedTaxonomy(taxonomyFreqs);
@@ -77,9 +77,9 @@ public class LabeledDataGenerator extends Cli {
 
         try {
             log.info("Starting tf-idf calculation...");
-            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains), "training.arff");
-            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains), "learning.arff");
-            Utils.saveArff(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains), "testing.arff");
+            Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains).toString(), "training.arff");
+            Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains).toString(), "learning.arff");
+            Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains).toString(), "testing.arff");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

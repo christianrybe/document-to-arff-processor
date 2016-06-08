@@ -3,7 +3,6 @@ package com.quickfind.util;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import weka.core.Instances;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,11 +23,11 @@ public class Utils {
     }
 
 
-    public static void saveArff(Instances data, String fileName) {
+    public static void saveToFile(String data, String fileName) {
         BufferedWriter wr = null;
         try {
             wr = new BufferedWriter(new FileWriter(new File(fileName)));
-            wr.write(data.toString());
+            wr.write(data);
             wr.newLine();
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,7 +47,7 @@ public class Utils {
         Iterator<Map.Entry<String,Integer>> iter = taxonomyFreqs.entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry<String, Integer> entry = iter.next();
-            if(entry.getValue() <=2 ) {
+            if(entry.getValue() <= 2 ) {
                 iter.remove();
             }
         }

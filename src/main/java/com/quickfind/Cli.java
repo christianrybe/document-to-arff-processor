@@ -4,6 +4,7 @@ import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import weka.core.stemmers.SnowballStemmer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,6 +19,8 @@ public class Cli {
     private static final Logger log = Logger.getLogger(Cli.class);
 
     private static final int MAX_DOCUMENT_SIZE = 100000; //do not process websites bigger than this
+    protected static SnowballStemmer stemmer = new SnowballStemmer();
+
     public static Map<String, Integer> taxonomyFreqs = new HashMap<>();
     public static final int LONGEST_WORD = 20; //assume no English word is longer than that
 
@@ -90,8 +93,11 @@ public class Cli {
     }
 
     protected static Collection<String> addToTaxonomyMap(Collection<String> terms, String token) {
-        String term = token.replaceAll("[^a-zA-Z′-]", "").toLowerCase();
-        if (!term.isEmpty() && term.length() < LONGEST_WORD && !term.equals("-")) {
+        String term = stemmer.stem(token.replaceAll("[^a-zA-Z′-]", "").toLowerCase());
+        if (!term.isEmpty() && term.length() < LONGEST_WORD && term.length() > 1) {
+            if (term.startsWith("-")) {
+                term = term.replace("-", "");
+            }
             int count = taxonomyFreqs.containsKey(term) ? taxonomyFreqs.get(term) : 0;
             taxonomyFreqs.put(term, count + 1);
             if (terms != null) {
