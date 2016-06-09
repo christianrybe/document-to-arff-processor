@@ -31,7 +31,7 @@ public class LabeledDataGenerator extends Cli {
                 .desc("Do not compute IDF.").build());
     }
 
-    private static Set<String> readPositiveDomains(String domainsFileName) {
+    private static Set<String> readPositiveDomains(String domainsFileName) throws FileNotFoundException {
         BufferedReader br = null;
         Set<String> positiveDomains = new HashSet<>();
         try {
@@ -40,10 +40,8 @@ public class LabeledDataGenerator extends Cli {
             while ((line = br.readLine()) != null) {
                 positiveDomains.add(line);
             }
-        } catch (FileNotFoundException e) {
-            LabeledDataGenerator.log.error("Domains file not found!");
         } catch (IOException e) {
-            LabeledDataGenerator.log.error("Error reading the domains file!");
+            log.error("Error reading the domains file!");
         } finally {
             if (br != null) {
                 try {
@@ -56,7 +54,7 @@ public class LabeledDataGenerator extends Cli {
         return positiveDomains;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         PropertyConfigurator.configure("log4j.properties");
         LabeledDataGenerator generator = new LabeledDataGenerator();
         generator.parseOptions(args);
@@ -76,8 +74,11 @@ public class LabeledDataGenerator extends Cli {
         Set<String> positiveDomains = readPositiveDomains(generator.cmd.getOptionValue("d"));
 
         log.info("Starting tf-idf calculation...");
+        log.info("Generating training set...");
         Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(0), positiveDomains).toString(), "training.arff");
+        log.info("Generating learning set...");
         Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(1), positiveDomains).toString(), "learning.arff");
+        log.info("Generating testing set...");
         Utils.saveToFile(Generator.computeTfIdf(taxonomy, idfMap, maps.get(2), positiveDomains).toString(), "testing.arff");
     }
 
