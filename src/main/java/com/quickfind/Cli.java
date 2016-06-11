@@ -61,16 +61,16 @@ public class Cli {
         }
     }
 
-    public Map<String, Collection<String>> readDocuments(String fileName) {
+    public Map<String, List<String>> readDocuments(String fileName) {
         log.debug("Reading document " + fileName);
         BufferedReader br = null;
-        Map<String, Collection<String>> domainsDocs = new HashMap<>();
+        Map<String, List<String>> domainsDocs = new HashMap<>();
         try {
             Tokenizer tokenizer = new WordTokenizer();
             String line;
             br = new BufferedReader(new FileReader(new File(fileName)));
             while ((line = br.readLine()) != null) {
-                Collection<String> terms = new ArrayList<>();
+                List<String> terms = new ArrayList<>();
 
                 int tokenCount = 0;
                 String[] columns = line.split(",", 2);
@@ -96,8 +96,8 @@ public class Cli {
         return domainsDocs;
     }
 
-    protected static Collection<String> addToTaxonomyMap(Collection<String> terms, String token) {
-        String term = stemmer.stem(token.replace("^-|(?<=\\s)-\\w+", "").replaceAll("[^a-zA-Z′-]", "").toLowerCase());
+    protected static List<String> addToTaxonomyMap(List<String> terms, String token) {
+            String term = stemmer.stem(token.replace("^-|(?<=\\s)-\\w+", "").replaceAll("[^a-zA-Z′-]", "").toLowerCase());
         if (!term.isEmpty() && term.length() < LONGEST_WORD && term.length() > 1) {
             int count = taxonomyFreqs.containsKey(term) ? taxonomyFreqs.get(term) : 0;
             taxonomyFreqs.put(term, count + 1);
