@@ -32,12 +32,8 @@ public class Cli {
     public Cli() {
         options.addOption(Option.builder("h").longOpt("help").desc("Show help.")
                 .build());
-        options.addOption(Option.builder("i").argName("csv file").longOpt("input").desc("Input file.")
-                .hasArg().required().build());
-        options.addOption(Option.builder("o").argName("arff file").longOpt("output").desc("Output file.")
-                .hasArg().build());
-        options.addOption(Option.builder("x").argName("csv file").longOpt("taxonomy").desc("File with the list of words for document term matrix.")
-                .hasArg().build());
+        options.addOption(Option.builder("n").longOpt("noidf").desc("Do not compute IDF.")
+                .build());
     }
 
     protected static String getOptionsList(@NotNull CommandLine cmd) {
@@ -55,7 +51,7 @@ public class Cli {
             cmd = parser.parse(options, args);
             log.info("Starting processing with options: " + getOptionsList(cmd));
         } catch (ParseException e) {
-            log.error("Failed to parseOptions command line arguments", e);
+            log.error("Invalid arguments passed!");
             formatter.printHelp("data-parser", options);
             System.exit(0);
         }

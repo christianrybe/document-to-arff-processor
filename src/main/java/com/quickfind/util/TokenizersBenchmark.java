@@ -5,6 +5,7 @@ import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.process.Tokenizer;
 import edu.stanford.nlp.trees.PennTreebankTokenizer;
+import org.apache.commons.cli.Option;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import weka.core.tokenizers.AlphabeticTokenizer;
@@ -18,14 +19,14 @@ import java.util.HashMap;
 /**
  * Created by krystian on 6/2/16.
  */
-public class TokenizerTester extends Cli {
-    private static final Logger log = Logger.getLogger(TokenizerTester.class);
+public class TokenizersBenchmark extends Cli {
+    private static final Logger log = Logger.getLogger(TokenizersBenchmark.class);
 
-
-    public TokenizerTester() {
-        super();
-        options.addOption("i1", "input1", true, "File1 for input to be processed.");
-        options.addOption("i2", "input2", true, "File2 for input to be processed.");
+    public TokenizersBenchmark() {
+        options.addOption(Option.builder("i").argName("csv file").longOpt("input").desc("Input file.")
+                .hasArg().required().build());
+        options.addOption(Option.builder("o").argName("arff file").longOpt("output").desc("Output file.")
+                .hasArg().build());
     }
 
     public static int checkPennTreebank(Reader r) {
@@ -33,7 +34,7 @@ public class TokenizerTester extends Cli {
         long startTime = initAtCurrTime(name);
         PennTreebankTokenizer tokenizer = new PennTreebankTokenizer(r);
         while (tokenizer.hasNext()) {
-            TokenizerTester.addToTaxonomyMap(null, tokenizer.next());
+            TokenizersBenchmark.addToTaxonomyMap(null, tokenizer.next());
         }
         logStats(startTime, name);
         return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
@@ -44,7 +45,7 @@ public class TokenizerTester extends Cli {
         long startTime = initAtCurrTime(name);
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
         while (tokenizer.hasNext()) {
-            TokenizerTester.addToTaxonomyMap(null, tokenizer.next().word());
+            TokenizersBenchmark.addToTaxonomyMap(null, tokenizer.next().word());
         }
         logStats(startTime, name);
         return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
@@ -56,7 +57,7 @@ public class TokenizerTester extends Cli {
         Tokenizer<Word> tokenizer = PTBTokenizer.PTBTokenizerFactory.newTokenizerFactory().getTokenizer(r, "ptb3Escaping=false, tokenizePerLine=true");
         while (tokenizer.hasNext()) {
             tokenizer.next();
-            TokenizerTester.addToTaxonomyMap(null, stemmer.stem(tokenizer.next().word()));
+            TokenizersBenchmark.addToTaxonomyMap(null, stemmer.stem(tokenizer.next().word()));
         }
         logStats(startTime, name);
         return Utils.getPrunedTaxonomy(taxonomyFreqs).size();
@@ -68,7 +69,7 @@ public class TokenizerTester extends Cli {
         for (String line : lines) {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
             for (String token : tokens) {
-                TokenizerTester.addToTaxonomyMap(null, token);
+                TokenizersBenchmark.addToTaxonomyMap(null, token);
             }
         }
         logStats(startTime, name);
@@ -82,7 +83,7 @@ public class TokenizerTester extends Cli {
         for (String line : lines) {
             tokenizer.tokenize(line);
             while (tokenizer.hasMoreElements()) {
-                TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
+                TokenizersBenchmark.addToTaxonomyMap(null, tokenizer.nextElement());
             }
         }
         logStats(startTime, name);
@@ -96,7 +97,7 @@ public class TokenizerTester extends Cli {
         for (String line : lines) {
             tokenizer.tokenize(line);
             while (tokenizer.hasMoreElements()) {
-                TokenizerTester.addToTaxonomyMap(null, stemmer.stem(tokenizer.nextElement()));
+                TokenizersBenchmark.addToTaxonomyMap(null, stemmer.stem(tokenizer.nextElement()));
             }
         }
         logStats(startTime, name);
@@ -110,7 +111,7 @@ public class TokenizerTester extends Cli {
         for (String line : lines) {
             tokenizer.tokenize(line);
             while (tokenizer.hasMoreElements()) {
-                TokenizerTester.addToTaxonomyMap(null, tokenizer.nextElement());
+                TokenizersBenchmark.addToTaxonomyMap(null, tokenizer.nextElement());
             }
         }
         logStats(startTime, name);
@@ -124,7 +125,7 @@ public class TokenizerTester extends Cli {
         for (String line : lines) {
             tokenizer.tokenize(line);
             while (tokenizer.hasMoreElements()) {
-                TokenizerTester.addToTaxonomyMap(null, stemmer.stem(tokenizer.nextElement()));
+                TokenizersBenchmark.addToTaxonomyMap(null, stemmer.stem(tokenizer.nextElement()));
             }
         }
         logStats(startTime, name);
@@ -138,7 +139,7 @@ public class TokenizerTester extends Cli {
             String[] tokens = line.split("[\\.,\\s!;?:`‘\"]+");
 
             for (String token : tokens) {
-                TokenizerTester.addToTaxonomyMap(null, stemmer.stem(token));
+                TokenizersBenchmark.addToTaxonomyMap(null, stemmer.stem(token));
             }
         }
         logStats(startTime, name);
@@ -174,7 +175,7 @@ public class TokenizerTester extends Cli {
 
     public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("log4j.properties");
-        TokenizerTester tester = new TokenizerTester();
+        TokenizersBenchmark tester = new TokenizersBenchmark();
         tester.parseOptions(args);
         String fileName = tester.cmd.getOptionValue("i");
 
